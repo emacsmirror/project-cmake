@@ -1,0 +1,64 @@
+* project-cmake.el - A cmake backend for project.el
+
+** Description
+This package adds a cmake backend for Emacs' project.el framework.
+
+The added value comes from cmake's reliance on external build directories which breaks `project-compile`, as well as some convenience functions for configuring projects and running unit tests.
+
+** Installation
+
+Currently the package can be installed via package-vc-install:
+
+#+begin_src emacs-lisp
+  (when (package-installed-p 'project-cmake)
+    (package-vc-install ('project-cmake :url "https://github.com/lucius-martius/project-cmake")))
+#+end_src
+
+I will submit the package to MELPA once I'm done with the remaining features I want to add.
+
+** Usage
+You should add  =project-cmake-find-root= to =project-find-functions= which then autoloads the package:
+#+begin_src
+  (add-hook 'project-find-functions #'project-cmake-find-root -1)
+#+end_src
+
+The ~DEPTH~ parameter to =add-hook= is important here, because it prioritizes the =cmake= backend over the =vc= backend. If your project is in version control,  =project-cmake= function will still get information like ignored files from the =vc= backend.
+
+You can set the custom variable =project-cmake-build-parent=, which can either be a relative or absolute path. In the case of a relative path it will be interpreted as relative to the project root, if set to an absolute path, it will place build directories for each project under that path in a directory with a name that is the full path to the source with slashes replaced by underscores.
+
+As a third alternative or in addition you can override this automatic build path by setting =project-cmake-build-directory= in the project's =.dir-locals.el= file, or by any other means, like hooks, as long as you ensure that the value will be consistent for the entire project directory tree.
+
+An initial cmake run in this build directory is performed whenever you either run =M-x project-compile= or =M-x project-cmake-run-cmake=. This will create the build directory if it doesn't exist and prepare the build system for commands that require it.
+
+You can define some global defaults for your cmake variables in =project-cmake-default-cmake-options= which get applied when a build directory is first created. If you need to set options on an already existing build directory, you can use the interactive command =M-x project-cmake-set-option= which also has completion, or change the defaults and rerun cmake with the prefix arg, i.e. =C-u M-x project-cmake-run-cmake=, which will cause cmake to reconfigure the build directory from scratch.
+
+** Testing
+
+You can run tests with =M-x project-cmake-test= and the results will display in a =*ctest*= compilation buffer. When you run the command with the prefix argument (i.e. =C-u M-x project-cmake-test=) you can select a test using completing-read. Instead of selecting/completing a given test you can also enter a regex pattern as unterstood by =ctest -R= and all matching tests will be run. Depending on your completion framework you may get a nice preview of what tests match this pattern before running it.
+
+** Scope of the Package
+
+Some things are determined to be out of scope for this backend. Mostly this concerns convenience functions that are already easily achievable with on-board mechanisms in emacs or that would take away too much choice from the user:
+
+*** Other generators/build-systems
+You can add support for the different generators that cmake supports by setting =compile-command= to use =make=, but you may want to set =project-cmake-default-cmake-options= to generate a =ninja= build-system and set =compile-command= accordingly via a =.dir-locals.el=.
+*** Convenient testing
+Currently, the testing part of this package is relatively bare-bones compared to full IDEs. I've considered to add a nice frontend with its own major mode, giving the user an interactive display of passing and failing tests, with filters for what to display. However, it doesn't make sense to develop something like this in the scope of a backend for a single build system of a single language. If Emacs adds a proper unit test framework or a language-agnostic package gains enough traction, I will be happy to add support for it (if necessary).
+*** Eglot
+Due to the limitation of how eglot chooses to configure server programs and options in a monolithic list. I see no easy way to incorporate a one-size-fits-all setup function in this package. If I provide a setup-function to changes the defaults, this would affect non-cmake projects as well. If I define a second function given to eglot as the =CONTACT= part in =eglot-server-programs= that distinguishes between project backends on the fly (see below), then users would have to change this function to change the options of the server program. If I then also add a custom variable so users can override the options, =project-cmake= would be the central point of configuration for all =c-mode= server stuff.
+
+So instead this package touches none of that and I'll just share a simplified version of my personal config:
+#+begin_src emacs-lisp
+  (with-eval-after-load 'eglot
+    (setf (cdr (seq-find (lambda (server)
+                           (and (listp (car server))
+                                (memq 'c-mode (car server))))
+                         eglot-server-programs))
+          (lambda (_int project)
+            (list "clangd" "--background-index"
+                  (concat "--compile-commands-dir=" (if (eq (car project) 'cmake)
+                                                        (cdr (assq 'build project))
+                                                      (project-root project)))))))
+#+end_src
+
+This gets the entry that contains =c-mode= from =eglot-server-programs= and sets the =CONTACT= to a lambda function that looks at the current project and sets the =--compile-commands-dir= option for clangd to the build dir if it's a cmake project or the project root if its not. You should be able to easily extend this for =ccls= if necessary.
