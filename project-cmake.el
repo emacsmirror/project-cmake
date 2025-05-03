@@ -297,9 +297,8 @@ A valid build directory in this case means one that contains a CMakeCache.txt."
                               (recursive-locate dir)))
                   (build (let ((configured-build (project-cmake--get-build-path source)))
                            (when (and build (not (file-equal-p build configured-build)))
-                             (message (concat "CMake build directory mismatch: "
-                                              "\"%s\" found and \"%s\" configured.")
-                                      (file-truename build) configured-build))
+                             (error "CMake build dir mismatch: %s found and %s configured"
+                                    (file-truename build) configured-build))
                            configured-build)))
         (list 'cmake
               (cons 'source (file-truename source))
