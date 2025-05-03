@@ -289,7 +289,12 @@ A valid build directory in this case means one that contains a CMakeCache.txt."
                   (unless (search-forward-regexp (rx bol "CMAKE_HOME_DIRECTORY:INTERNAL="
                                                      (group (*? anychar)) eol))
                     (error "Could not find variable CMAKE_HOME_DIRECTORY in CMakeCache.txt"))
-                  (file-truename (match-string 1)))))
+                  (let ((source (match-string 1)))
+                    (unless (file-name-absolute-p source)
+                      (error "CMAKE_HOME_DIRECTORY not an absolute path"))
+                    (if-let ((remote (file-remote-p build)))
+                        (expand-file-name (file-relative-name source "/") remote)
+                      source)))))
     (let* ((dir (file-truename dir))
            (build (locate-dominating-file dir "CMakeCache.txt")))
       (when-let* ((source (or (and build (locate-from-build build))
@@ -298,6 +303,10 @@ A valid build directory in this case means one that contains a CMakeCache.txt."
                            (when (and build (not (file-equal-p build configured-build)))
                              (error "CMake build dir mismatch: %s found and %s configured"
                                     (file-truename build) configured-build))
+                           (when (not (equal (file-remote-p source)
+                                             (file-remote-p configured-build)))
+                             (error "Source (%s) and build (%s) dirs not on the same system"
+                                    source configured-build))
                            configured-build)))
         (list 'cmake
               (cons 'source (file-truename source))
