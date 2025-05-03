@@ -199,8 +199,7 @@ arguments)."
 (defun project-cmake--get-build-path (source)
   "Return a full path for the expected build directory for SOURCE."
   (setq source (file-name-as-directory source))
-  (or (when-let ((build-directory (project--value-in-dir 'project-cmake-build-directory source)))
-        build-directory)
+  (or (project--value-in-dir 'project-cmake-build-directory source)
       (let ((build-parent (or (project--value-in-dir 'project-cmake-build-parent source)
                               project-cmake-build-parent)))
         (if (file-name-absolute-p build-parent)
