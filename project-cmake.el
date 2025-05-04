@@ -91,10 +91,6 @@ If set via `.dir-locals.el' only paths are accepted as safe, not functions."
 ;;;###autoload
 (put 'project-cmake-build-directory 'safe-local-variable 'stringp)
 
-(defvar project-cmake--load-file-path (if load-file-name
-                                          (file-name-directory load-file-name)
-                                        default-directory))
-
 (defcustom project-cmake-default-cmake-options '("CMAKE_BUILD_TYPE:STRING=Release"
                                                  "CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON")
   "An initial list of options, value types and values to pass to cmake.
