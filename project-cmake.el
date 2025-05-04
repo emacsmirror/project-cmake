@@ -69,23 +69,24 @@ You can override this variable in your project's .dir-locals.el."
 ;;;###autoload
 (put 'project-cmake-ctest-program 'safe-local-variable 'stringp)
 
-(defcustom project-cmake-build-parent "build"
-  "The directory where the build directories are located.
+(defcustom project-cmake-build-directory "build"
+  "Determines the build directory for CMake.
 
-This can be set to an absolute or relative path.
-If a relative path is given the build directory will be created
-below the project root."
+This can either be a string, or a function.
+
+When a string is given it will be interpreted either as a relative path under
+the source directory, or an absolute path directly to the build directory.
+Absolute paths mostly make sense as overrides in `.dir-locals.el'.
+
+You can also set this to a function that takes the source directory as an
+argument and returns a relative or absolute path to the build directory.  This
+function needs to return the same path for all files in the project and it can
+not make use of defmethods that require the project object, i.e `project-name'
+etc.
+
+If set via `.dir-locals.el' only paths are accepted as safe, not functions."
   :group 'project-cmake
-  :type 'string)
-
-;;;###autoload
-(put 'project-cmake-build-parent 'safe-local-variable 'stringp)
-
-(defvar-local project-cmake-build-directory nil
-  "Override the build directory used.
-This variable can be set in .dir-locals.el or otherwise to override the
-automatic selection of build directories via `project-cmake-build-parent'.
-This should never be set globally under any circumstances.")
+  :type '(choice string function))
 
 ;;;###autoload
 (put 'project-cmake-build-directory 'safe-local-variable 'stringp)
@@ -198,16 +199,15 @@ arguments)."
 
 (defun project-cmake--get-build-path (source)
   "Return a full path for the expected build directory for SOURCE."
-  (setq source (file-name-as-directory source))
-  (or (project--value-in-dir 'project-cmake-build-directory source)
-      (let ((build-parent (or (project--value-in-dir 'project-cmake-build-parent source)
-                              project-cmake-build-parent)))
-        (if (file-name-absolute-p build-parent)
-            (let* ((name (directory-file-name (file-truename source)))
-                   (name-no-root (file-relative-name name "/"))
-                   (child-dir-name (subst-char-in-string ?/ ?_ name-no-root)))
-              (expand-file-name child-dir-name build-parent))
-          (expand-file-name build-parent source)))))
+  (let* ((source (file-name-as-directory source))
+         (dir (let ((value (project--value-in-dir 'project-cmake-build-directory source)))
+                (cond ((functionp value)
+                       (funcall value source))
+                      ((stringp value)
+                       value)
+                      (t (error "Invalid value for project-cmake-build-directory"))))))
+    (if (file-name-absolute-p dir) dir
+      (expand-file-name dir source))))
 
 (defun project-cmake--maybe-run-cmake (project)
   "Run cmake for PROJECT if no valid build directory exists yet.

@@ -24,11 +24,26 @@ You should add  =project-cmake-find-root= to =project-find-functions= which then
 
 The ~DEPTH~ parameter to =add-hook= is important here, because it prioritizes the =cmake= backend over the =vc= backend. If your project is in version control,  =project-cmake= function will still get information like ignored files from the =vc= backend.
 
-You can set the custom variable =project-cmake-build-parent=, which can either be a relative or absolute path. In the case of a relative path it will be interpreted as relative to the project root, if set to an absolute path, it will place build directories for each project under that path in a directory with a name that is the full path to the source with slashes replaced by underscores.
+*** Build directories
 
-As a third alternative or in addition you can override this automatic build path by setting =project-cmake-build-directory= in the project's =.dir-locals.el= file, or by any other means, like hooks, as long as you ensure that the value will be consistent for the entire project directory tree.
+By default =project-cmake= will build in a =build= subdirectory under your project's source directory. This can be changed by setting =project-cmake-build-directory= to point to a different build path. Relative paths will be interpreted relative to the source directory. Absolute paths mostly make sense when set per project via =.dir-locals.el= (See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Directory-Variables.html][Directory Variables]]).
 
-An initial cmake run in this build directory is performed whenever you either run =M-x project-compile= or =M-x project-cmake-run-cmake=. This will create the build directory if it doesn't exist and prepare the build system for commands that require it.
+This variable can also be set to a function that gets passed the path to the source directory and returns a path to the desired build directory. For example:
+
+#+begin_src emacs-lisp
+  (setopt project-cmake-build-directory
+          (lambda (source)
+            (expand-file-name (file-name-nondirectory source)
+                              "~/Projects/Build")))
+#+end_src
+
+This uses the directory name of the source and places a build directory with the same name under =~/Projects/Build/=. _Note_ that this function can not make use of any defmethod =project-*= functions that require the project object, i.e. =project-name= in this case.
+
+Functions are not considered safe values in =.dir-locals.el= by default.
+
+*** Running CMake
+
+An initial cmake run in the build directory is performed whenever you either run =M-x project-compile= or =M-x project-cmake-run-cmake=. This will create the build directory if it doesn't exist and prepare the build system for commands that require it.
 
 You can define some global defaults for your cmake variables in =project-cmake-default-cmake-options= which get applied when a build directory is first created. If you need to set options on an already existing build directory, you can use the interactive command =M-x project-cmake-set-option= which also has completion, or change the defaults and rerun cmake with the prefix arg, i.e. =C-u M-x project-cmake-run-cmake=, which will cause cmake to reconfigure the build directory from scratch.
 
