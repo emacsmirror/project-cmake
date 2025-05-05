@@ -47,6 +47,10 @@ An initial cmake run in the build directory is performed whenever you either run
 
 You can define some global defaults for your cmake variables in =project-cmake-default-cmake-options= which get applied when a build directory is first created. If you need to set options on an already existing build directory, you can use the interactive command =M-x project-cmake-set-option= which also has completion, or change the defaults and rerun cmake with the prefix arg, i.e. =C-u M-x project-cmake-run-cmake=, which will cause cmake to reconfigure the build directory from scratch.
 
+*** Compiling Projects
+
+This project adds an advice to =project-compile= to call =compile-command= in the build directory instead of the source directory. It will also warn if CMake hasn't been run yet (i.e. =CMakeCache.txt= is missing).
+
 ** Testing
 
 You can run tests with =M-x project-cmake-test= and the results will display in a =*ctest*= compilation buffer. When you run the command with the prefix argument (i.e. =C-u M-x project-cmake-test=) you can select a test using completing-read. Instead of selecting/completing a given test you can also enter a regex pattern as unterstood by =ctest -R= and all matching tests will be run. Depending on your completion framework you may get a nice preview of what tests match this pattern before running it.

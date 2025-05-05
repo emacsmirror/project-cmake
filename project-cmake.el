@@ -205,17 +205,6 @@ arguments)."
     (if (file-name-absolute-p dir) dir
       (expand-file-name dir source))))
 
-(defun project-cmake--maybe-run-cmake (project)
-  "Run cmake for PROJECT if no valid build directory exists yet.
-A valid build directory in this case means one that contains a CMakeCache.txt."
-  (let* ((build (cdr (assq 'build project)))
-         (source (cdr (assq 'source project)))
-         (options (or (project--value-in-dir 'project-cmake-default-cmake-options
-                                             (file-name-as-directory source))
-                      project-cmake-default-cmake-options)))
-    (unless (file-readable-p (expand-file-name "CMakeCache.txt" build))
-      (project-cmake--run-cmake-with-options project options))))
-
 (defun project-cmake--cmake-project-p (_symbol buffer)
   "Return non-nil if BUFFER is part of a cmake project."
   (with-current-buffer buffer
@@ -385,17 +374,15 @@ OPTION here is a cons cell in the form (name . value)."
 
 (define-advice project-compile (:around (orig-fn) cmake-build)
   "Trick `project-compile' to run `compile' in the build directory."
-  (cl-letf* ((real-project-cmake-find-root (symbol-function 'project-cmake-find-root))
-             ((symbol-function 'project-cmake-find-root)
-              (lambda (dir)
-                (when-let ((project (funcall real-project-cmake-find-root dir)))
-                  (project-cmake--maybe-run-cmake project)
-                  project)))
-             (real-project-root (symbol-function 'project-root))
+  (cl-letf* ((real-project-root (symbol-function 'project-root))
              ((symbol-function 'project-root)
-              (lambda (project) (if (eq (car project) 'cmake)
-                                    (cdr (assq 'build project))
-                                  (funcall real-project-root project)))))
+              (lambda (project)
+                (if (eq (car project) 'cmake)
+                    (let ((build (cdr (assq 'build project))))
+                      (unless (file-readable-p (expand-file-name "CMakeCache.txt" build))
+                        (error "No CMakeCache.txt: Run `project-cmake-run-cmake' first"))
+                      build)
+                  (funcall real-project-root project)))))
     (funcall orig-fn)))
 
 (provide 'project-cmake)
