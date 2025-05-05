@@ -103,10 +103,7 @@ manually or the entire project is reconfigured.  See the docstring of
   :type '(list string))
 
 ;;;###autoload
-(put 'project-cmake-default-cmake-options 'safe-local-variable
-     (lambda (options)
-       (and (listp options)
-            (seq-every-p (lambda (option) (list-of-strings-p option)) options))))
+(put 'project-cmake-default-cmake-options 'safe-local-variable 'list-of-strings-p)
 
 (defun project-cmake--get-options-from-cache (project)
   "Read CMakeCache.txt to get a list of options for PROJECT."
