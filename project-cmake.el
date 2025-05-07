@@ -38,7 +38,7 @@
 
 (defgroup project-cmake nil
   "A project.el backend for cmake."
-  :version "28.1"
+  :version "0.1"
   :group 'tools)
 
 (defcustom project-cmake-cmake-program "cmake"
