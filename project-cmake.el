@@ -69,6 +69,11 @@ You can override this variable in your project's .dir-locals.el."
 ;;;###autoload
 (put 'project-cmake-ctest-program 'safe-local-variable 'stringp)
 
+(defcustom project-cmake-ctest-arguments '("--output-on-failure")
+  "A list of command-line arguments passed to the ctest command by default."
+  :group 'project-cmake
+  :type '(list string))
+
 (defcustom project-cmake-build-directory "build"
   "Determines the build directory for CMake.
 
@@ -184,9 +189,11 @@ arguments)."
          (ctest-program (or (project--value-in-dir 'project-cmake-ctest-program
                                                    (file-name-as-directory source))
                             project-cmake-ctest-program))
-         (compile-command (if pattern
-                              (concat ctest-program " -R '" pattern "'")
-                              ctest-program))
+         (compile-command (apply 'concat ctest-program
+                                 (nconc (mapcar (lambda (arg)
+                                                  (concat " " arg))
+                                                project-cmake-ctest-arguments)
+                                        (if pattern (list " -R '" pattern "'")))))
          (compilation-buffer-name-function (lambda (_mode) "" "*ctest*")))
     (compile compile-command)))
 
