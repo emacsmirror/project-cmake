@@ -370,7 +370,9 @@ OPTION here is a cons cell in the form (name . value)."
                                            ("FALSE" "TRUE"))))
                                ("PATH" (read-directory-name "Set path: "))
                                ("FILEPATH" (read-file-name "Set file-name: "))
-                               ("STRING" (read-string "Set string value: ")))))
+                               ("STRING" (concat "\"" (read-string "Set string value: "
+                                                                   old-value)
+                                                 "\"")))))
                  (list (concat name ":" type "=" value))))
   (project-cmake--run-cmake-with-options (project-current) (list option)))
 
