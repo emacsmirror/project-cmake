@@ -368,8 +368,9 @@ OPTION here is a cons cell in the form (name . value)."
                                            ("NO" "YES")
                                            ("TRUE" "FALSE")
                                            ("FALSE" "TRUE"))))
-                               ("PATH" (read-directory-name "Set path: "))
-                               ("FILEPATH" (read-file-name "Set file-name: "))
+                               ("PATH" (read-directory-name "Set path: " old-value))
+                               ("FILEPATH" (read-file-name "Set file-name: "
+                                                           (file-name-directory old-value)))
                                ("STRING" (concat "\"" (read-string "Set string value: "
                                                                    old-value)
                                                  "\"")))))
