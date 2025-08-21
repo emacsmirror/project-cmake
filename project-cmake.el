@@ -314,14 +314,14 @@ arguments)."
 
 (cl-defmethod project-ignores ((project (head cmake)) dir)
   "Return the ignored files in DIR of a cmake PROJECT."
-  (when-let* ((source (cdr (assq 'source project)))
-              (build (cdr (assq 'build project)))
-              (relative-build (file-relative-name build dir))
-              (cmake-ignore (unless (string-match-p (rx bos ?. (? ?.) ?/) relative-build)
-                              (list relative-build)))
-              (vc-prj (project-try-vc source))
-              (other-ignore (if vc-prj (project-ignores vc-prj dir)
-                              (project-ignores (cons 'transient source)))))
+  (let* ((source (cdr (assq 'source project)))
+         (build (cdr (assq 'build project)))
+         (relative-build (file-relative-name build dir))
+         (cmake-ignore (unless (string-match-p (rx bos ?. (? ?.) ?/) relative-build)
+                         (list relative-build)))
+         (vc-prj (project-try-vc source))
+         (other-ignore (if vc-prj (project-ignores vc-prj dir)
+                         (project-ignores (cons 'transient source) dir))))
     (append other-ignore cmake-ignore)))
 
 (defun project-cmake-run-cmake (&optional reset)
