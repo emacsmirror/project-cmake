@@ -43,9 +43,11 @@ Functions are not considered safe values in =.dir-locals.el= by default.
 
 *** Running CMake
 
-An initial cmake run in the build directory is performed whenever you either run =M-x project-compile= or =M-x project-cmake-run-cmake=. This will create the build directory if it doesn't exist and prepare the build system for commands that require it.
+Before other commands, like =M-x project-compile= can be used, an initial cmake run needs to be performed to set up the build directory by running =M-x project-cmake-run-cmake=.
 
 You can define some global defaults for your cmake variables in =project-cmake-default-cmake-options= which get applied when a build directory is first created. If you need to set options on an already existing build directory, you can use the interactive command =M-x project-cmake-set-option= which also has completion, or change the defaults and rerun cmake with the prefix arg, i.e. =C-u M-x project-cmake-run-cmake=, which will cause cmake to reconfigure the build directory from scratch.
+
+Note that some options do not take effect when changed interactively after a build directory has been created, =CMAKE_GENERATOR= being one example. If you're unsure, consult the [[https://cmake.org/cmake/help/latest/][CMake documentation]].
 
 *** Compiling Projects
 
