@@ -1,5 +1,8 @@
 * project-cmake.el - A cmake backend for project.el
 
+[[https://melpa.org/#/project-cmake][file:https://melpa.org/packages/project-cmake-badge.svg]]
+[[https://stable.melpa.org/#/project-cmake][file:https://stable.melpa.org/packages/project-cmake-badge.svg]]
+
 ** Description
 This package adds a cmake backend for Emacs' project.el framework.
 
@@ -7,14 +10,7 @@ The added value comes from cmake's reliance on external build directories which 
 
 ** Installation
 
-Currently the package can be installed via package-vc-install:
-
-#+begin_src emacs-lisp
-  (when (package-installed-p 'project-cmake)
-    (package-vc-install ('project-cmake :url "https://github.com/lucius-martius/project-cmake")))
-#+end_src
-
-I will submit the package to MELPA once I'm done with the remaining features I want to add.
+The package can now be installed from MELPA or MELPA stable.
 
 ** Usage
 You should add  =project-cmake-find-root= to =project-find-functions= which then autoloads the package:
