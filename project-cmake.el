@@ -117,7 +117,7 @@ manually or the entire project is reconfigured.  See the docstring of
       (insert-file-contents-literally (expand-file-name "CMakeCache.txt"))
       (goto-char (point-min))
       (let (docstring ret)
-        (while (not (eq (point) (point-max)))
+        (while (not (eobp))
           (cond ((looking-at (rx "#")))
                 ((looking-at (rx "//" (group (+? anychar)) eol))
                  (setq docstring (concat docstring (match-string 1))))
@@ -166,7 +166,7 @@ scratch."
          (cmake-program (or (project--value-in-dir 'project-cmake-cmake-program
                                                    (file-name-as-directory source))
                             project-cmake-cmake-program))
-         (compile-command (apply 'concat cmake-program " " (if fresh "--fresh ")
+         (compile-command (apply #'concat cmake-program " " (if fresh "--fresh ")
                                  `(,@(mapcar (lambda (option)
                                                (concat "-D" option " "))
                                              options)
@@ -189,7 +189,7 @@ arguments)."
          (ctest-program (or (project--value-in-dir 'project-cmake-ctest-program
                                                    (file-name-as-directory source))
                             project-cmake-ctest-program))
-         (compile-command (apply 'concat ctest-program
+         (compile-command (apply #'concat ctest-program
                                  (nconc (mapcar (lambda (arg)
                                                   (concat " " arg))
                                                 project-cmake-ctest-arguments)
