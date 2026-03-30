@@ -1,4 +1,6 @@
-* project-cmake.el - A cmake backend for project.el
+#+title: project-cmake.el - A cmake backend for project.el
+#+author: Lucius Martius
+#+language: en
 
 [[https://melpa.org/#/project-cmake][file:https://melpa.org/packages/project-cmake-badge.svg]]
 [[https://stable.melpa.org/#/project-cmake][file:https://stable.melpa.org/packages/project-cmake-badge.svg]]
