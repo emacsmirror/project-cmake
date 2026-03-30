@@ -1,0 +1,6 @@
+#+title: project-cmake - Changelog
+#+author: Lucius Martius
+#+language: en
+
+* Version 0.1
++ Initial Release
