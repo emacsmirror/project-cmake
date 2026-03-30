@@ -2,5 +2,8 @@
 #+author: Lucius Martius
 #+language: en
 
+* Version 0.2
++ Removed defaults for ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ and added a bit more documentation on the format since now the examples are gone.
+
 * Version 0.1
 + Initial Release

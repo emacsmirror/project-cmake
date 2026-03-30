@@ -70,7 +70,7 @@ You can override this variable in your project's .dir-locals.el."
 ;;;###autoload
 (put 'project-cmake-ctest-program 'safe-local-variable 'stringp)
 
-(defcustom project-cmake-ctest-arguments '("--output-on-failure")
+(defcustom project-cmake-ctest-arguments '()
   "A list of command-line arguments passed to the ctest command by default."
   :group 'project-cmake
   :type '(list string))
@@ -97,9 +97,11 @@ If set via `.dir-locals.el' only paths are accepted as safe, not functions."
 ;;;###autoload
 (put 'project-cmake-build-directory 'safe-local-variable 'stringp)
 
-(defcustom project-cmake-default-cmake-options '("CMAKE_BUILD_TYPE:STRING=Release"
-                                                 "CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON")
+(defcustom project-cmake-default-cmake-options '()
   "An initial list of options, value types and values to pass to cmake.
+
+Each entry has the same form as a CMake cache entry: <key>:<type>=<value>.
+For example you can set the build type with `CMAKE_BUILD_TYPE:STRING=Release'.
 
 Note that once a project has been configured for the first time any changes to
 these values will no longer be taken into account until the variable is unset
