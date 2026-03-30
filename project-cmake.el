@@ -191,12 +191,14 @@ PATTERN is a regex pattern as accepted by the '-R' option of ctest (see the man
 page).  Unless PATTERN is given, all tests are run (i.e. ctest is run without
 arguments)."
   (let* ((project (project-current))
-         (default-directory (cdr (assq 'build project)))
+         (default-directory (cdr (assq 'source project)))
+         (test-directory (cdr (assq 'build project)))
          (compile-command (apply #'concat (project-cmake--get-ctest-program project)
                                  (nconc (mapcar (lambda (arg)
                                                   (concat " " arg))
                                                 project-cmake-ctest-arguments)
-                                        (if pattern (list " -R '" pattern "'")))))
+                                        (if pattern (list " -R '" pattern "'"))
+                                        (list " --test-dir " test-directory))))
          (compilation-buffer-name-function (lambda (_mode) "" "*ctest*")))
     (compile compile-command)))
 
