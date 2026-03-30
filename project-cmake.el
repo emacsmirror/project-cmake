@@ -111,6 +111,16 @@ manually or the entire project is reconfigured.  See the docstring of
 ;;;###autoload
 (put 'project-cmake-default-cmake-options 'safe-local-variable 'list-of-strings-p)
 
+(defun project-cmake--get-cmake-program (project)
+  "Return the value of `project-cmake-cmake-program' for the current PROJECT."
+  (project--value-in-dir 'project-cmake-cmake-program
+                         (file-name-as-directory (cdr (assq 'source project)))))
+
+(defun project-cmake--get-ctest-program (project)
+  "Return the value of `project-cmake-ctest-program' for the current PROJECT."
+  (project--value-in-dir 'project-cmake-ctest-program
+                         (file-name-as-directory (cdr (assq 'source project)))))
+
 (defun project-cmake--get-options-from-cache (project)
   "Read CMakeCache.txt to get a list of options for PROJECT."
   (let* ((default-directory (cdr (assq 'build project))))
@@ -142,17 +152,14 @@ manually or the entire project is reconfigured.  See the docstring of
   "Retrieves a list of test names in PROJECT."
   (declare-function json-read "json")
   (require 'json)
-  (let ((default-directory (cdr (assq 'build project)))
-        (source (cdr (assq 'source project))))
+  (let ((default-directory (cdr (assq 'build project))))
     (with-temp-buffer
-      (let ((ctest-program (or (project--value-in-dir 'project-cmake-ctest-program
-                                                      (file-name-as-directory source))
-                               project-cmake-ctest-program)))
-        (process-file ctest-program nil (current-buffer) nil "--show-only=json-v1"))
-      (goto-char (point-min))
-      (let* ((json (json-read)))
-        (mapcar (lambda (test) (cdr (assq 'name test)))
-                (cdr (assq 'tests json)))))))
+      (when (zerop (process-file (project-cmake--get-ctest-program project) nil (current-buffer) nil
+                                 "--show-only=json-v1"))
+        (goto-char (point-min))
+        (let* ((json (json-read)))
+          (mapcar (lambda (test) (cdr (assq 'name test)))
+                  (cdr (assq 'tests json))))))))
 
 (defun project-cmake--run-cmake-with-options (project options &optional fresh)
   "Run cmake for PROJECT with the given OPTIONS.
@@ -163,11 +170,8 @@ and the cdr is a string of the option's value.
 If FRESH is non-nil, run cmake with the '--fresh' option, to reconfigure from
 scratch."
   (let* ((default-directory (cdr (assq 'build project)))
-         (source (cdr (assq 'source project)))
-         (cmake-program (or (project--value-in-dir 'project-cmake-cmake-program
-                                                   (file-name-as-directory source))
-                            project-cmake-cmake-program))
-         (compile-command (apply #'concat cmake-program " " (if fresh "--fresh ")
+         (compile-command (apply #'concat (project-cmake--get-cmake-program project) " "
+                                 (if fresh "--fresh ")
                                  `(,@(mapcar (lambda (option)
                                                (concat "-D" option " "))
                                              options)
@@ -186,11 +190,7 @@ page).  Unless PATTERN is given, all tests are run (i.e. ctest is run without
 arguments)."
   (let* ((project (project-current))
          (default-directory (cdr (assq 'build project)))
-         (source (cdr (assq 'source project)))
-         (ctest-program (or (project--value-in-dir 'project-cmake-ctest-program
-                                                   (file-name-as-directory source))
-                            project-cmake-ctest-program))
-         (compile-command (apply #'concat ctest-program
+         (compile-command (apply #'concat (project-cmake--get-ctest-program project)
                                  (nconc (mapcar (lambda (arg)
                                                   (concat " " arg))
                                                 project-cmake-ctest-arguments)
