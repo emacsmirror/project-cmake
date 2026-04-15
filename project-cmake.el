@@ -287,7 +287,7 @@ arguments)."
                   (let ((source (match-string 1)))
                     (unless (file-name-absolute-p source)
                       (error "CMAKE_HOME_DIRECTORY not an absolute path"))
-                    (if-let ((remote (file-remote-p build)))
+                    (if-let* ((remote (file-remote-p build)))
                         (expand-file-name (file-relative-name source "/") remote)
                       source)))))
     (let* ((dir (file-truename dir))
