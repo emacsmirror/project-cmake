@@ -97,6 +97,12 @@ If set via `.dir-locals.el' only paths are accepted as safe, not functions."
 ;;;###autoload
 (put 'project-cmake-build-directory 'safe-local-variable 'stringp)
 
+(defcustom project-cmake-override-compile-command t
+  "Override `compile-command when running `project-compile'.
+The command will be replaced with \"cmake --build <build_dir>\"."
+  :group 'project-cmake
+  :type 'boolean)
+
 (defcustom project-cmake-default-cmake-options '()
   "An initial list of options, value types and values to pass to cmake.
 
@@ -121,6 +127,11 @@ manually or the entire project is reconfigured.  See the docstring of
 (defun project-cmake--get-ctest-program (project)
   "Return the value of `project-cmake-ctest-program' for the current PROJECT."
   (project--value-in-dir 'project-cmake-ctest-program
+                         (file-name-as-directory (cdr (assq 'source project)))))
+
+(defun project-cmake--get-override-compile-command (project)
+  "Return non-nil if `compile-command' is overriden for the current PROJECT."
+  (project--value-in-dir 'project-cmake-override-compile-command
                          (file-name-as-directory (cdr (assq 'source project)))))
 
 (defun project-cmake--get-options-from-cache (project)
@@ -162,6 +173,24 @@ manually or the entire project is reconfigured.  See the docstring of
         (let* ((json (json-read)))
           (mapcar (lambda (test) (cdr (assq 'name test)))
                   (cdr (assq 'tests json))))))))
+
+(defun project-cmake--compile-with-override (project)
+  "Call `compile', overriding `compile-command' for PROJECT."
+  (let* ((build (cdr (assq 'build project)))
+         (default-directory (cdr (assq 'source project)))
+         (compile-command (concat "cmake --build " build)))
+    (compile compile-command)))
+
+(defun project-cmake--build-after-configure (buffer status)
+  "Function to start a build when configuration in BUFFER has finished.
+The compilation will be restarted when STATUS indicates a successful
+configuration run.
+This is meant to be hooked into `compilation-finish-functions' locally."
+  (with-current-buffer buffer
+    (remove-hook 'compilation-finish-functions #'project-cmake--build-after-configure t))
+  (with-temp-buffer
+    (when (string= status "finished\n")
+      (project-cmake--compile-with-override (project-current)))))
 
 (defun project-cmake--run-cmake-with-options (project options &optional fresh)
   "Run cmake for PROJECT with the given OPTIONS.
@@ -386,17 +415,20 @@ OPTION here is a cons cell in the form (name . value)."
 (put #'project-cmake-set-option 'completion-predicate #'project-cmake--cmake-project-p)
 
 (define-advice project-compile (:around (orig-fn) cmake-build)
-  "Trick `project-compile' to run `compile' in the build directory."
-  (cl-letf* ((real-project-root (symbol-function 'project-root))
-             ((symbol-function 'project-root)
-              (lambda (project)
-                (if (eq (car project) 'cmake)
-                    (let ((build (cdr (assq 'build project))))
-                      (unless (file-readable-p (expand-file-name "CMakeCache.txt" build))
-                        (error "No CMakeCache.txt: Run `project-cmake-run-cmake' first"))
-                      build)
-                  (funcall real-project-root project)))))
-    (funcall orig-fn)))
+  "Run `project-compile' with an overriden `compile-command'."
+  (if-let* ((project (project-current))
+            (override-p (and (eq (car (project-current)) 'cmake)
+                             (project-cmake--get-override-compile-command project)))
+            (build (cdr (assq 'build project)))
+            (source (and (not (file-exists-p (expand-file-name "CMakeCache.txt" build)))
+                         (cdr (assq 'source project))))
+            (buf (project-cmake--run-cmake-with-options project project-cmake-default-cmake-options)))
+      (with-current-buffer buf
+        (add-hook 'compilation-finish-functions #'project-cmake--build-after-configure nil t)
+        buf)
+    (if override-p
+        (project-cmake--compile-with-override project)
+      (funcall orig-fn))))
 
 (provide 'project-cmake)
 ;;; project-cmake.el ends here
