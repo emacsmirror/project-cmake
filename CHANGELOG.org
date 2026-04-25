@@ -4,6 +4,7 @@
 
 ** Version 0.2
 + Removed defaults for ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ and added a bit more documentation on the format since now the examples are gone.
+  + These variables now also respect the settings in the project-wide ~.dir-locals~, even when the value has changed since the buffer was initialized.
 + Added customization option ~project-cmake-override-compile-command~, which when set to non-nil, overrides ~compile-command~ used in ~project-compile~ to use ~cmake --build~ instead of ~make~ or ~ninja~ commands. This allows compiling a project without a manual cmake run as it did before. This is enabled by default, so if you need a custom compile command for whatever reason, you will need to set it to ~nil~ in your config.
 
 ** Version 0.1

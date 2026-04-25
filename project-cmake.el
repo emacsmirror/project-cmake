@@ -134,6 +134,16 @@ manually or the entire project is reconfigured.  See the docstring of
   (project--value-in-dir 'project-cmake-override-compile-command
                          (file-name-as-directory (cdr (assq 'source project)))))
 
+(defun project-cmake--get-ctest-arguments (project)
+  "Return the value of `project-cmake-ctest-arguments' for the current PROJECT."
+  (project--value-in-dir 'project-cmake-ctest-arguments
+                         (file-name-as-directory (cdr (assq 'source project)))))
+
+(defun project-cmake--get-default-cmake-options (project)
+  "Return the value of `project-cmake-default-cmake-options' for PROJECT."
+  (project--value-in-dir 'project-cmake-default-cmake-options
+                         (file-name-as-directory (cdr (assq 'source project)))))
+
 (defun project-cmake--get-options-from-cache (project)
   "Read CMakeCache.txt to get a list of options for PROJECT."
   (let* ((default-directory (cdr (assq 'build project))))
@@ -226,7 +236,7 @@ arguments)."
          (compile-command (apply #'concat (project-cmake--get-ctest-program project)
                                  (nconc (mapcar (lambda (arg)
                                                   (concat " " arg))
-                                                project-cmake-ctest-arguments)
+                                                (project-cmake--get-ctest-arguments project))
                                         (if pattern (list " -R '" pattern "'"))
                                         (list " --test-dir " test-directory))))
          (compilation-buffer-name-function (lambda (_mode) "" "*ctest*")))
@@ -369,7 +379,7 @@ the build from scratch."
                         (cdr (assq 'build project)))))
       (let* ((cache-exists (file-readable-p (expand-file-name "CMakeCache.txt" build)))
              (options (when (or reset (not cache-exists))
-                        project-cmake-default-cmake-options)))
+                        (project-cmake--get-default-cmake-options project))))
         (project-cmake--run-cmake-with-options project options reset))
     (error "This buffer is not part of a cmake project")))
 
@@ -421,11 +431,12 @@ OPTION here is a cons cell in the form (name . value)."
                              (project-cmake--get-override-compile-command project)))
             (build (cdr (assq 'build project)))
             (source (and (not (file-exists-p (expand-file-name "CMakeCache.txt" build)))
-                         (cdr (assq 'source project))))
-            (buf (project-cmake--run-cmake-with-options project project-cmake-default-cmake-options)))
-      (with-current-buffer buf
-        (add-hook 'compilation-finish-functions #'project-cmake--build-after-configure nil t)
-        buf)
+                         (cdr (assq 'source project)))))
+      (let* ((options (project-cmake--get-default-cmake-options project))
+             (buf (project-cmake--run-cmake-with-options project options)))
+        (with-current-buffer buf
+          (add-hook 'compilation-finish-functions #'project-cmake--build-after-configure nil t)
+          buf))
     (if override-p
         (project-cmake--compile-with-override project)
       (funcall orig-fn))))
