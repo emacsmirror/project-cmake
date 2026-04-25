@@ -171,13 +171,14 @@ and the cdr is a string of the option's value.
 
 If FRESH is non-nil, run cmake with the '--fresh' option, to reconfigure from
 scratch."
-  (let* ((default-directory (cdr (assq 'build project)))
+  (let* ((default-directory (cdr (assq 'source project)))
          (compile-command (apply #'concat (project-cmake--get-cmake-program project) " "
                                  (if fresh "--fresh ")
                                  `(,@(mapcar (lambda (option)
                                                (concat "-D" option " "))
                                              options)
-                                   ,(cdr (assq 'source project)))))
+                                   "-S " ,(cdr (assq 'source project))
+                                   " -B " ,(cdr (assq 'build project)))))
          (compilation-buffer-name-function (lambda (_mode) "" "*cmake*")))
     (unless (executable-find "cmake" t)
       (error "Can not locate cmake executable"))
