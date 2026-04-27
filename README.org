@@ -49,7 +49,7 @@ Note that some options do not take effect when changed interactively after a bui
 
 *** Compiling Projects
 
-This project adds an advice to =project-compile= to call =compile-command= in the build directory instead of the source directory. It will also warn if CMake hasn't been run yet (i.e. =CMakeCache.txt= is missing).
+This project adds an advice to =project-compile= to call =compile-command= in the build directory instead of the source directory. If the build directory doesn't exist or doesn't contain a =CMakeCache.txt= file, an initial =cmake= run is performed first.
 
 ** Testing
 
@@ -59,22 +59,9 @@ You can run tests with =M-x project-cmake-test= and the results will display in 
 
 Some things are determined to be out of scope for this backend. Mostly this concerns convenience functions that are already easily achievable with on-board mechanisms in emacs or that would take away too much choice from the user:
 
-*** Other generators/build-systems/compilers
-
-You can add support for the different generators that cmake supports by setting =compile-command= and =project-cmake-default-cmake-options= to use something other than =make= and =gcc=.
-
-For example, to build with =ninja= and =clang=, like you would want to do with C++20 modules, you can set something like this in your =.dir-locals.el=:
-#+begin_src emacs-lisp
-  ((nil . ((project-cmake-default-cmake-options . ("CMAKE_GENERATOR:STRING=Ninja"
-                                                   "CMAKE_C_COMPILER:FILEPATH=clang"
-                                                   "CMAKE_CXX_COMPILER:FILEPATH=clang++"))
-           (compile-command . "ninja"))))
-#+end_src
-
-Note that to switch between the Makefile and Ninja generators on CMake you need to reconfigure the build directory [[#running-cmake][from scratch]].
-
 *** Convenient testing
 Currently, the testing part of this package is relatively bare-bones compared to full IDEs. I've considered to add a nice frontend with its own major mode, giving the user an interactive display of passing and failing tests, with filters for what to display. However, it doesn't make sense to develop something like this in the scope of a backend for a single build system of a single language. If Emacs adds a proper unit test framework or a language-agnostic package gains enough traction, I will be happy to add support for it (if necessary).
+
 *** Eglot
 Due to the limitation of how eglot chooses to configure server programs and options in a monolithic list. I see no easy way to incorporate a one-size-fits-all setup function in this package. If I provide a setup-function to changes the defaults, this would affect non-cmake projects as well. If I define a second function given to eglot as the =CONTACT= part in =eglot-server-programs= that distinguishes between project backends on the fly (see below), then users would have to change this function to change the options of the server program. If I then also add a custom variable so users can override the options, =project-cmake= would be the central point of configuration for all =c-mode= server stuff.
 
