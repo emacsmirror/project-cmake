@@ -69,13 +69,11 @@ If timeout is not given, the default value of 5s will be used."
       (goto-char (point-min))
       (condition-case err
           (re-search-forward (rx "Starting Emacs daemon."
-                                 (group (*? (or any "\n")))
-                                 "Process test"))
+                                 (* whitespace)
+                                 (group (*? (or not-newline))) "\n"))
         (error (message "%s" (buffer-string))
                (signal (car err) (cdr err))))
-      (let ((expr (string-trim (match-string 1))))
-        (unless (string-empty-p expr)
-          (read expr))))))
+      (read (match-string 1)))))
 
 (ert-deftest project-cmake-test-current-project-simple ()
   "Test whether `project-current' correctly detects the project directories."
