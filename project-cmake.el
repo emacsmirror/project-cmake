@@ -202,17 +202,36 @@ This is meant to be hooked into `compilation-finish-functions' locally."
     (when (string= status "finished\n")
       (project-cmake--compile-with-override (project-current)))))
 
-(defun project-cmake--run-cmake-with-options (project options &optional fresh)
+(defun project-cmake--get-presets-from-cmake (project type)
+  "Get the presets of TYPE for PROJECT from cmake.
+
+Supported for TYPE are `configure', `build' and `test'."
+  (let ((default-directory (cdr (assq 'source project)))
+        (presets nil))
+    (with-temp-buffer
+      (when (zerop (process-file (project-cmake--get-cmake-program project) nil (current-buffer) nil
+                                 (concat "--list-presets=" (symbol-name type))))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (when (looking-at (rx (+? blank) ?\" (group (+ alphanumeric)) ?\" ?\n))
+            (push (match-string 1) presets))
+          (forward-line))))
+    presets))
+
+(defun project-cmake--run-cmake-with-options (project options &optional fresh preset)
   "Run cmake for PROJECT with the given OPTIONS.
 
 OPTIONS is a list of cons cells where the car is the string of the cmake option
 and the cdr is a string of the option's value.
 
 If FRESH is non-nil, run cmake with the '--fresh' option, to reconfigure from
-scratch."
+scratch.
+
+If PRESET is non-nil, cmake is reconfigured with that preset."
   (let* ((default-directory (cdr (assq 'source project)))
          (compile-command (apply #'concat (project-cmake--get-cmake-program project) " "
-                                 (if fresh "--fresh ")
+                                 (when fresh "--fresh ")
+                                 (when preset (concat "--preset=" preset " "))
                                  `(,@(mapcar (lambda (option)
                                                (concat "-D" option " "))
                                              options)
@@ -310,6 +329,15 @@ arguments)."
          (completion-ignore-case t))
     (completing-read "Select Test: " tests)))
 
+(defun project-cmake--read-cmake-preset (type &optional project)
+  "Read the name of a preset of TYPE for the given PROJECT."
+  (when-let* ((project (or project (project-current)))
+              (presets (project-cmake--get-presets-from-cmake project type))
+              (completion-ignore-case t)
+              (preset (completing-read "Select Preset: " presets)))
+    (when (not (string-empty-p preset))
+      preset)))
+
 ;;;###autoload
 (defun project-cmake-find-root (dir)
   "Find the root of a potential Cmake project under DIR."
@@ -379,8 +407,11 @@ the build from scratch."
                         (cdr (assq 'build project)))))
       (let* ((cache-exists (file-readable-p (expand-file-name "CMakeCache.txt" build)))
              (options (when (or reset (not cache-exists))
-                        (project-cmake--get-default-cmake-options project))))
-        (project-cmake--run-cmake-with-options project options reset))
+                        (project-cmake--get-default-cmake-options project)))
+             (preset (and (or reset (not cache-exists))
+                          (called-interactively-p 'any)
+                          (project-cmake--read-cmake-preset 'configure project))))
+        (project-cmake--run-cmake-with-options project options reset preset))
     (error "This buffer is not part of a cmake project")))
 
 (put #'project-cmake-run-cmake 'completion-predicate #'project-cmake--cmake-project-p)
