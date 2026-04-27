@@ -67,9 +67,12 @@ If timeout is not given, the default value of 5s will be used."
                                                         (kill-emacs)))))))))
       (wait-for-process proc (or timeout 5))
       (goto-char (point-min))
-      (re-search-forward (rx "Starting Emacs daemon."
-                             (group (*? (or any "\n")))
-                             "Process test"))
+      (condition-case err
+          (re-search-forward (rx "Starting Emacs daemon."
+                                 (group (*? (or any "\n")))
+                                 "Process test"))
+        (error (message "%s" (buffer-string))
+               (signal (car err) (cdr err))))
       (let ((expr (string-trim (match-string 1))))
         (unless (string-empty-p expr)
           (read expr))))))
