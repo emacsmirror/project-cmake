@@ -2,8 +2,9 @@
 #+author: Lucius Martius
 #+language: en
 
-[[https://melpa.org/#/project-cmake][file:https://melpa.org/packages/project-cmake-badge.svg]]
-[[https://stable.melpa.org/#/project-cmake][file:https://stable.melpa.org/packages/project-cmake-badge.svg]]
+#+html: <a href="https://melpa.org/#/project-cmake"><img src="https://melpa.org/packages/project-cmake-badge.svg"></a>
+#+html: <a href="https://stable.melpa.org/#/project-cmake"><img src="https://stable.melpa.org/packages/project-cmake-badge.svg"></a>
+#+html: <a href="https://github.com/lucius-martius/project-cmake/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/lucius-martius/project-cmake/test.yml?label=CI"></a>
 
 ** Description
 This package adds a cmake backend for Emacs' project.el framework.
