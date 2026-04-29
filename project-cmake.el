@@ -261,7 +261,7 @@ arguments)."
          (compilation-buffer-name-function (lambda (_mode) "" "*ctest*")))
     (compile compile-command)))
 
-(defun project-cmake--get-build-path (source)
+(defun project-cmake--get-build-directory (source)
   "Return a full path for the expected build directory for SOURCE."
   (let* ((source (file-name-as-directory source))
          (dir (let ((value (project--value-in-dir 'project-cmake-build-directory source)))
@@ -361,7 +361,7 @@ arguments)."
            (build (locate-dominating-file dir "CMakeCache.txt")))
       (when-let* ((source (or (and build (locate-from-build build))
                               (recursive-locate dir)))
-                  (build (let ((configured-build (project-cmake--get-build-path source)))
+                  (build (let ((configured-build (project-cmake--get-build-directory source)))
                            (when (and build (not (file-equal-p build configured-build)))
                              (error "CMake build dir mismatch: %s found and %s configured"
                                     (file-truename build) configured-build))
