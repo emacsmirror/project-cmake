@@ -73,7 +73,7 @@ You can override this variable in your project's .dir-locals.el."
 (defcustom project-cmake-ctest-arguments '()
   "A list of command-line arguments passed to the ctest command by default."
   :group 'project-cmake
-  :type '(list string))
+  :type '(repeat string))
 
 (defcustom project-cmake-build-directory "build"
   "Determines the build directory for CMake.
@@ -114,7 +114,7 @@ these values will no longer be taken into account until the variable is unset
 manually or the entire project is reconfigured.  See the docstring of
 `project-cmake-run-cmake' on how to do that."
   :group 'project-cmake
-  :type '(list string))
+  :type '(repeat string))
 
 ;;;###autoload
 (put 'project-cmake-default-cmake-options 'safe-local-variable 'list-of-strings-p)
