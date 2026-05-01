@@ -3,7 +3,7 @@
 #+language: en
 
 ** Version 0.2.1
-+ Fix "Value does not match type" warnings about when setting ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ to a list of more than one string.
++ Fix "Value does not match type" warnings when setting ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ to a list of more than one string.
 
 ** Version 0.2
 + Removed defaults for ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ and added a bit more documentation on the format since now the examples are gone.
