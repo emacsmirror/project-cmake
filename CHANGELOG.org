@@ -2,6 +2,9 @@
 #+author: Lucius Martius
 #+language: en
 
+** Version 0.2.1
++ Fix "Value does not match type" warnings about when setting ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ to a list of more than one string.
+
 ** Version 0.2
 + Removed defaults for ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ and added a bit more documentation on the format since now the examples are gone.
   + These variables now also respect the settings in the project-wide ~.dir-locals~, even when the value has changed since the buffer was initialized.

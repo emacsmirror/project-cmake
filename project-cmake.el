@@ -4,7 +4,7 @@
 
 ;; Author: Lucius Martius <lucius.martius@mailbox.org>
 ;; Keywords: tools, convenience
-;; Version: 0.2
+;; Version: 0.2.1
 ;; Package-Requires: ((emacs "30.1"))
 ;; URL: https://github.com/lucius-martius/project-cmake
 
