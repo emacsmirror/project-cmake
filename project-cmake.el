@@ -75,6 +75,9 @@ You can override this variable in your project's .dir-locals.el."
   :group 'project-cmake
   :type '(repeat string))
 
+;;;###autoload
+(put 'project-cmake-ctest-arguments 'safe-local-variable 'list-of-strings-p)
+
 (defcustom project-cmake-build-directory "build"
   "Determines the build directory for CMake.
 
