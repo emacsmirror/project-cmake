@@ -212,13 +212,15 @@ Supported for TYPE are `configure', `build' and `test'."
   (let ((default-directory (cdr (assq 'source project)))
         (presets nil))
     (with-temp-buffer
-      (when (zerop (process-file (project-cmake--get-cmake-program project) nil (current-buffer) nil
-                                 (concat "--list-presets=" (symbol-name type))))
-        (goto-char (point-min))
-        (while (not (eobp))
-          (when (looking-at (rx (+? blank) ?\" (group (+ alphanumeric)) ?\" ?\n))
-            (push (match-string 1) presets))
-          (forward-line))))
+      (if (zerop (process-file (project-cmake--get-cmake-program project) nil (current-buffer) nil
+                               (concat "--list-presets=" (symbol-name type))))
+          (progn
+            (goto-char (point-min))
+            (while (not (eobp))
+              (when (looking-at (rx (+? blank) ?\" (group (+ alphanumeric)) ?\" ?\n))
+                (push (match-string 1) presets))
+              (forward-line)))
+        (error "Failed to get presets from CMake")))
     presets))
 
 (defun project-cmake--run-cmake-with-options (project options &optional fresh preset)
