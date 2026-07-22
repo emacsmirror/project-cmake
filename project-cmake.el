@@ -217,7 +217,7 @@ Supported for TYPE are `configure', `build' and `test'."
           (progn
             (goto-char (point-min))
             (while (not (eobp))
-              (when (looking-at (rx (+? blank) ?\" (group (+ alphanumeric)) ?\" ?\n))
+              (when (looking-at (rx (+? blank) ?\" (group (+ not-newline)) ?\" ?\n))
                 (push (match-string 1) presets))
               (forward-line)))
         (error "Failed to get presets from CMake")))
