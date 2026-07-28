@@ -122,29 +122,36 @@ manually or the entire project is reconfigured.  See the docstring of
 ;;;###autoload
 (put 'project-cmake-default-cmake-options 'safe-local-variable 'list-of-strings-p)
 
+(defmacro project-cmake--value-in-dir (var dir)
+  "Wraps around `project-cmake--value-in-dir'.
+Arguments VAR and DIR are forwarded to the wrapped function."
+  (if (version<= emacs-version "31.0.90")
+      `(project--value-in-dir ,var ,dir)
+    `(project--value-in-dir ,var ,dir 1)))
+
 (defun project-cmake--get-cmake-program (project)
   "Return the value of `project-cmake-cmake-program' for the current PROJECT."
-  (project--value-in-dir 'project-cmake-cmake-program
+  (project-cmake--value-in-dir 'project-cmake-cmake-program
                          (file-name-as-directory (cdr (assq 'source project)))))
 
 (defun project-cmake--get-ctest-program (project)
   "Return the value of `project-cmake-ctest-program' for the current PROJECT."
-  (project--value-in-dir 'project-cmake-ctest-program
+  (project-cmake--value-in-dir 'project-cmake-ctest-program
                          (file-name-as-directory (cdr (assq 'source project)))))
 
 (defun project-cmake--get-override-compile-command (project)
   "Return non-nil if `compile-command' is overriden for the current PROJECT."
-  (project--value-in-dir 'project-cmake-override-compile-command
+  (project-cmake--value-in-dir 'project-cmake-override-compile-command
                          (file-name-as-directory (cdr (assq 'source project)))))
 
 (defun project-cmake--get-ctest-arguments (project)
   "Return the value of `project-cmake-ctest-arguments' for the current PROJECT."
-  (project--value-in-dir 'project-cmake-ctest-arguments
+  (project-cmake--value-in-dir 'project-cmake-ctest-arguments
                          (file-name-as-directory (cdr (assq 'source project)))))
 
 (defun project-cmake--get-default-cmake-options (project)
   "Return the value of `project-cmake-default-cmake-options' for PROJECT."
-  (project--value-in-dir 'project-cmake-default-cmake-options
+  (project-cmake--value-in-dir 'project-cmake-default-cmake-options
                          (file-name-as-directory (cdr (assq 'source project)))))
 
 (defun project-cmake--get-options-from-cache (project)
@@ -269,7 +276,7 @@ arguments)."
 (defun project-cmake--get-build-directory (source)
   "Return a full path for the expected build directory for SOURCE."
   (let* ((source (file-name-as-directory source))
-         (dir (let ((value (project--value-in-dir 'project-cmake-build-directory source)))
+         (dir (let ((value (project-cmake--value-in-dir 'project-cmake-build-directory source)))
                 (cond ((functionp value)
                        (funcall value source))
                       ((stringp value)
