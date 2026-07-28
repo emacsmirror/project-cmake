@@ -2,6 +2,11 @@
 #+author: Lucius Martius
 #+language: en
 
+** Version 0.3 (WIP)
++ Set ~safe-local-variable~ for ~project-cmake-ctest-arguments~.
++ Output an error when CMake fails due to invalid presets.
++ Fixed too restricive regex for parsing preset names.
+
 ** Version 0.2.1
 + Fix "Value does not match type" warnings when setting ~project-cmake-default-cmake-options~ and ~project-cmake-ctest-arguments~ to a list of more than one string.
 
